@@ -23,7 +23,7 @@ MAIN_CLASSPATH = $(OUT_MAIN)
 TEST_CLASSPATH = $(OUT_TEST):$(OUT_MAIN):$(LIB_DIR)/junit-platform-console-standalone-6.0.0.jar
 
 # Main class
-MAIN_CLASS = com.profiling.Main
+MAIN_CLASS = com.template.Main
 
 # JFR settings
 JFR_DURATION = 60s

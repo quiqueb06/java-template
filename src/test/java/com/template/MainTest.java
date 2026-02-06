@@ -1,4 +1,4 @@
-package com.profiling;
+package com.template;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
