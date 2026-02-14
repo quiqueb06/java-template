@@ -1,69 +1,64 @@
 package com.template;
 
-import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 
 public class Main {
-    private static final String FILENAME = "numeros.txt";
-
     public static void main(String[] args) {
-        System.out.println("Iniciando evaluación ");
+        String fileName = "numeros.txt";
+        generateNumbers(fileName, 3000);
 
-        int[] intervals = {10, 100, 500, 1000, 1200, 1600, 1800, 2000, 3000};
+        int[] intervals = {10, 100, 500, 1000, 1500, 2000, 2500, 3000};
 
-        for (int size : intervals) {
-            System.out.println("Evaluando con " + size + " números:");
+        System.out.println("Algoritmo,N,Escenario,Tiempo(ms)");
 
-            generateNumbersFile(FILENAME, size);
+        for (int n : intervals) {
+            Integer[] data = readNumbers(fileName, n);
+            
+            runMeasuredSorts(data.clone(), n, "Promedio");
 
-            Integer[] arrGnome = readNumbersFile(FILENAME, size);
-            Sorts.gnomeSort(arrGnome);
-            Sorts.gnomeSort(arrGnome);
-
-            Integer[] arrMerge = readNumbersFile(FILENAME, size);
-            Sorts.mergeSort(arrMerge);
-            Sorts.mergeSort(arrMerge);
-
-            Integer[] arrQuick = readNumbersFile(FILENAME, size);
-            Sorts.quickSort(arrQuick, 0, arrQuick.length - 1);
-            Sorts.quickSort(arrQuick, 0, arrQuick.length - 1); 
-
-            Integer[] arrRadix = readNumbersFile(FILENAME, size);
-            Sorts.radixSort(arrRadix); 
-            Sorts.radixSort(arrRadix); 
-
-            Integer[] arrBubble = readNumbersFile(FILENAME, size);
-            Sorts.bubbleSort(arrBubble);
-            Sorts.bubbleSort(arrBubble);
+            Integer[] ordenado = data.clone();
+            Sorts.quickSort(ordenado, 0, ordenado.length - 1); 
+            runMeasuredSorts(ordenado, n, "Mejor");
         }
-
-        System.out.println("Ejecución finalizada. Revisa los resultados en tu Profiler.");
     }
 
-    private static void generateNumbersFile(String filename, int count) {
-        try (FileWriter writer = new FileWriter(filename)) {
-            Random random = new Random();
+    private static void runMeasuredSorts(Integer[] arr, int n, String escenario) {
+        measure("GnomeSort", n, escenario, () -> Sorts.gnomeSort(arr.clone()));
+        measure("MergeSort", n, escenario, () -> Sorts.mergeSort(arr.clone()));
+        measure("QuickSort", n, escenario, () -> Sorts.quickSort(arr.clone(), 0, n - 1));
+        measure("RadixSort", n, escenario, () -> Sorts.radixSort(arr.clone()));
+        measure("BubbleSort", n, escenario, () -> Sorts.bubbleSort(arr.clone()));
+    }
+
+    private static void measure(String nombre, int n, String escenario, Runnable sortAlgorithm) {
+        long startTime = System.nanoTime();
+        sortAlgorithm.run();
+        long endTime = System.nanoTime();
+        
+        double duration = (endTime - startTime) / 1_000_000.0;
+        System.out.println(nombre + "," + n + "," + escenario + "," + duration);
+    }
+
+    private static void generateNumbers(String fileName, int count) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(fileName))) {
+            Random rand = new Random();
             for (int i = 0; i < count; i++) {
-                writer.write(random.nextInt(10000) + "\n");
+                out.println(rand.nextInt(10000));
             }
-        } catch (IOException e) {
-            System.err.println("Error al generar archivo: " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
-    private static Integer[] readNumbersFile(String filename, int count) {
-        Integer[] array = new Integer[count];
-        try (Scanner scanner = new Scanner(new File(filename))) {
-            int i = 0;
-            while (scanner.hasNextInt() && i < count) {
-                array[i++] = scanner.nextInt();
-            }
-        } catch (IOException e) {
-            System.err.println("Error al leer archivo: " + e.getMessage());
+    private static Integer[] readNumbers(String fileName, int n) {
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(fileName));
+            return lines.stream().limit(n).map(Integer::parseInt).toArray(Integer[]::new);
+        } catch (Exception e) {
+            return new Integer[0];
         }
-        return array;
     }
 }
